@@ -1,0 +1,148 @@
+import streamlit as st
+import pandas as pd
+import pickle
+
+header = st.container()
+dataset = st.container()
+features = st.container()
+model = st.container()
+
+with header:
+	st.title('Welcome to my very first Streamlit')
+	st.text('This project looks at factors that can affect churn within a telecom company')
+
+with dataset:
+	st.header('Telecom Customer Churn')
+	st.text('I found the dataset on https://www.mavenanalytics.io/data-playground')
+	st.header('_______________________________________________')
+
+with features:
+	st.header('30 features to help predict possible churn')
+	st.text('Note to Salesperson: Input customer data to see if churn is a risk. If they are')
+	st.text('likely to churn, follow incentive guidelines from our "Churn Meeting"')
+
+
+Gender = st.radio("Gender", ('Female:', 'Male'))
+
+Age = st.slider('Age', min_value=18, max_value=90, value=18, step=1)
+
+col1, col2 =st.columns(2)
+
+Married = col1.radio("Married", ('No', 'Yes'))
+
+num_dependent = st.slider('num_dependent', min_value=0, max_value=10, value=0, step=1)
+
+num_referrals = st.slider('num_referrals', min_value=0, max_value=10, value=0, step=1)
+
+tenure_months = st.slider('tenure_months', min_value=0, max_value=120, value=0, step=1)
+
+
+Offer = st.radio("Offer", ('None', 'Offer A', 'Offer B', 'Offer C', 'Offer D', 'Offer E'))
+
+
+col1, col2 =st.columns(2)
+
+phone_service = col1.radio("phone_service", ('No', 'Yes'))
+
+multiple_lines = col2.radio("multiple_lines", ('No', 'Yes'))
+
+avg_mnthly_longdist_charges = st.slider('avg_mnthly_longdist_charges', min_value=0, max_value=100, value=0, step=1)
+
+
+col1, col2 =st.columns(2)
+
+internet_service = col1.radio("internet_service", ('No', 'Yes'))
+
+internet_type = col2.radio("internet_type", ('None', 'Fiber_Optic', 'DSL', 'Cable'))
+
+online_security = col1.radio("online_security", ('No', 'Yes'))
+
+online_backup = col2.radio("online_backup", ('No', 'Yes'))
+
+device_protect_plan = col1.radio("device_protect_plan", ('No', 'Yes'))
+
+prem_tech_support = col2.radio("prem_tech_support", ('No', 'Yes'))
+
+streaming_TV = col1.radio("streaming_TV", ('No', 'Yes'))
+
+streaming_movies = col2.radio("streaming_movies", ('No', 'Yes'))
+
+streaming_music = col1.radio("streaming_music", ('No', 'Yes'))
+
+unlimited_data = col2.radio("unlimited_data", ('No', 'Yes'))
+
+avg_mnthly_GB_download = st.slider('avg_mnthly_GB_download', min_value=0, max_value=200, value=0, step=1)
+
+
+
+col1, col2 =st.columns(2)
+
+Contract = col1.radio("Contract", ('Month-to-Month', 'One Year', 'Two Year'))
+
+paperless_billing = col2.radio("paperless_billing", ('No', 'Yes'))
+
+payment_method = col1.radio("payment_method", ('Bank Withdrawal', 'Credit Card', 'Mailed Check'))
+
+
+monthly_charge = st.slider('monthly_charge', min_value=0, max_value=300, value=0, step=1)
+
+total_charges = st.slider('total_charges', min_value=0, max_value=10000, value=0, step=1)
+
+total_refunds = st.slider('total_refunds', min_value=0, max_value=500, value=0, step=1)
+
+total_extra_data_charges = st.slider('total_extra_data_charges', min_value=0, max_value=300, value=0, step=1)
+
+total_long_dist_charges= st.slider('total_long_dist_charges', min_value=0, max_value=5000, value=0, step=5)
+
+total_revenue = st.slider('total_revenue', min_value=0, max_value=15000, value=0, step=10)
+
+
+
+# Creating the dataframe to run predictions on
+row = [Gender_Male, Married_Yes, Age, num_dependent, num_referrals, tenure_months,
+       avg_mnthly_longdist_charges, avg_mnthly_GB_download,
+       monthly_charge, Offer_Offer_A, Offer_Offer_B, Offer_Offer_C, Offer_Offer_D,
+       Offer_Offer_E, phone_service_Yes, multiple_lines_Yes,
+       internet_service_Yes, internet_type_DSL,
+       internet_type_Fiber_Optic, internet_type_None,
+       online_security_Yes, online_backup_Yes, device_protect_plan_Yes,
+       prem_tech_support_Yes, streaming_TV_Yes, streaming_movies_Yes,
+       streaming_music_Yes, unlimited_data_Yes, Contract_One_Year,
+       Contract_Two_Year, paperless_billing_Yes,
+       payment_method_Credit_Card, payment_method_Mailed_Check]
+columns = ['Gender_Male', 'Married_Yes', 'Age', 'num_dependent', 'num_referrals', 'tenure_months',
+       'avg_mnthly_longdist_charges', 'avg_mnthly_GB_download',
+       'monthly_charge', 'Offer_Offer_A', 'Offer_Offer_B', 'Offer_Offer_C', 'Offer_Offer_D',
+       'Offer_Offer_E', 'phone_service_Yes', 'multiple_lines_Yes',
+       'internet_service_Yes', 'internet_type_DSL',
+       'internet_type_Fiber_Optic', 'internet_type_None',
+       'online_security_Yes', 'online_backup_Yes', 'device_protect_plan_Yes',
+       'prem_tech_support_Yes', 'streaming_TV_Yes', 'streaming_movies_Yes',
+       'streaming_music_Yes', 'unlimited_data_Yes', 'Contract_One_Year',
+       'Contract_Two_Year', 'paperless_billing_Yes',
+       'payment_method_Credit_Card', 'payment_method_Mailed_Check']
+
+churn_scenario = pd.DataFrame(dict(zip(columns, row)), index=[0])
+
+# Show the table?
+st.table(churn_scenario)
+
+# Now predicting!
+if st.button(label="Click to predict churn"):
+
+    # Load the model
+    loaded_model = pickle.load(open('churn_prediction_model_V2.sav', 'rb'))
+
+    # Make predictions (and get out pred probabilities)
+    pred = loaded_model.predict(churn_scenario)[0]
+    proba = loaded_model.predict_proba(churn_scenario)[:,1][0]
+
+  
+# Sharing the predictions
+    if pred == 0:
+        st.write("### The customer will churn😔😭")
+        st.write(f"Predicted probability of churn: {proba*100:.2f} %")
+
+    elif pred == 1:
+        st.write("### The customer won't churn!🥳✨🎉")
+        st.write(f"Predicted probability of churn: {proba*100:.2f} %")
